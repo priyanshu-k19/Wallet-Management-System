@@ -11,6 +11,10 @@ import com.example.wallet.repository.TransactionRepository;
 import com.example.wallet.repository.WalletRepository;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +26,7 @@ public class WalletServiceImpl implements WalletService {
     private final TransactionRepository transactionRepository;
 
     @Override
+    @Cacheable(value = "walletBalances", key = "#userId")
     public WalletResponseDto getBalance(Long userId) {
         Wallet wallet = getWallet(userId);
         return mapToResponse(wallet);
@@ -29,6 +34,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
+    @CachePut(value = "walletBalances", key = "#userId")
     public WalletResponseDto credit(Long userId, BigDecimal amount) {
         validateAmount(amount);
 
@@ -41,6 +47,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
+    @CachePut(value = "walletBalances", key = "#userId")
     public WalletResponseDto debit(Long userId, BigDecimal amount) {
         validateAmount(amount);
 
@@ -54,6 +61,10 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
+    @Caching(
+        put = @CachePut(value = "walletBalances", key = "#fromUserId"),
+        evict = @CacheEvict(value = "walletBalances", key = "#toUserId")
+    )
     public WalletResponseDto transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
         validateAmount(amount);
 

@@ -19,6 +19,9 @@ spring:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
 
+  cache:
+    type: redis
+
 logging:
   level:
     org.springframework: INFO
